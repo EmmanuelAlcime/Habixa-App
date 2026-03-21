@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "528248717553",
+    "project_id": "habixa-fa0f0",
+    "storage_bucket": "habixa-fa0f0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:528248717553:android:36254a8eaf6913a031e950",
+        "android_client_info": {
+          "package_name": "com.habixa.app"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyAGJQUUrn-ouvzVGwRWR2hHLOSBftSeRhk"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
