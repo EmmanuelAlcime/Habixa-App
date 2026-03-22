@@ -22,6 +22,7 @@ import {
   InteractionManager,
 } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as ImagePicker from 'expo-image-picker';
 import * as DocumentPicker from 'expo-document-picker';
@@ -70,6 +71,7 @@ export default function ConversationScreen() {
     removeMessage,
     loadMore,
     hasMore,
+    refetch,
   } = useMessages(id, user?.id ?? '');
   const [input, setInput] = useState(draft ? decodeURIComponent(draft) : '');
   const [sending, setSending] = useState(false);
@@ -92,6 +94,12 @@ export default function ConversationScreen() {
       setInput(decodeURIComponent(draft));
     }
   }, [draft]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (id) refetch();
+    }, [id, refetch])
+  );
 
   useEffect(() => {
     if (!id || !user?.id) return;

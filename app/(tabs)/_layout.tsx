@@ -17,19 +17,13 @@ export default function TabLayout() {
   const { colors, colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
   const segments = useSegments();
-  const isMessageDetails =
+  // Hide tab bar on all detail screens and nested routes (profile sub-screens, etc.)
+  // Show only when at a tab's root (e.g. Home, Search, Listings, Messages, Profile index)
+  const isTabRoot =
     segments[0] === '(tabs)' &&
-    segments[1] === '(messages)' &&
-    segments[2] !== undefined &&
-    segments[2] !== 'index';
-  const isNotifications =
-    segments[0] === '(tabs)' && segments[1] === '(home)' && segments[2] === 'notifications';
-  const isListingDetails =
-    segments[0] === '(tabs)' &&
-    segments[1] === '(home)' &&
-    segments[2] === 'listing' &&
-    segments[3] !== undefined;
-  const hideTabBar = isMessageDetails || isNotifications || isListingDetails;
+    segments[1] !== undefined &&
+    (segments[2] === undefined || segments[2] === 'index');
+  const hideTabBar = !isTabRoot;
 
   return (
     <Tabs

@@ -78,7 +78,7 @@ export function useMessages(
   const appendMessage = useCallback((msg: Message) => {
     setMessages((prev) => {
       if (prev.some((m) => String(m.id) === String(msg.id))) return prev;
-      return [...prev, msg];
+      return [msg, ...prev];
     });
   }, []);
 
