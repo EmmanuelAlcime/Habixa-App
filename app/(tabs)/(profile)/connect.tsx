@@ -73,8 +73,8 @@ export default function ConnectScreen() {
     return (
       <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backBtn}>
-            <HabixaIcon name="chevron-left" size={20} color={Colors.desertSand} solid />
+          <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+            <HabixaIcon name="chevron-left" size={22} color={Colors.desertSand} solid />
           </Pressable>
           <Text style={styles.headerTitle}>Receive Rent</Text>
         </View>
@@ -101,8 +101,8 @@ export default function ConnectScreen() {
   return (
     <View style={[styles.container, { paddingTop: insets.top, backgroundColor: colors.background }]}>
       <View style={styles.header}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <HabixaIcon name="chevron-left" size={20} color={Colors.desertSand} solid />
+        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <HabixaIcon name="chevron-left" size={22} color={Colors.desertSand} solid />
         </Pressable>
         <Text style={styles.headerTitle}>Receive Rent Payments</Text>
       </View>

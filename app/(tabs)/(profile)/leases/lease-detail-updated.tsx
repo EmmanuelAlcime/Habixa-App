@@ -304,8 +304,8 @@ export default function LeaseDetailScreen() {
 function Header({ title, colors, onBack }: { title: string; colors: { text: string; border: string }; onBack: () => void }) {
   return (
     <View style={[styles.header, { borderBottomColor: colors.border }]}>
-      <Pressable onPress={onBack} style={styles.backBtn}>
-        <Text style={[styles.backText, { color: Colors.terracotta }]}>← Back</Text>
+      <Pressable onPress={onBack} style={styles.backBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+        <HabixaIcon name="chevron-left" size={22} color={Colors.terracotta} solid />
       </Pressable>
       <Text style={[styles.headerTitle, { color: colors.text }]}>{title}</Text>
     </View>

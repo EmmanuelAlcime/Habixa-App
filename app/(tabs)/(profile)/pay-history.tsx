@@ -100,10 +100,8 @@ export default function PayHistoryScreen() {
       ]}
     >
       <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={styles.backBtn}>
-          <Text style={[styles.backText, { color: Colors.terracotta }]}>
-            ← Back
-          </Text>
+        <Pressable onPress={() => router.back()} style={styles.backBtn} hitSlop={{ top: 12, bottom: 12, left: 12, right: 12 }}>
+          <HabixaIcon name="chevron-left" size={22} color={Colors.terracotta} solid />
         </Pressable>
         <Text style={[styles.title, { color: colors.text }]}>Payment History</Text>
       </View>
