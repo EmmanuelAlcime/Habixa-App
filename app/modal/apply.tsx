@@ -7,10 +7,10 @@
  * Opens from the "Apply Now" button on the listing detail page.
  * Replaces the current apply/[id].tsx which only creates a conversation.
  */
-import { useState } from 'react';
+import React, { useState } from 'react';
 import {
   View, Text, StyleSheet, Pressable, TextInput,
-  ScrollView, ActivityIndicator, Alert, Platform,
+  ScrollView, ActivityIndicator, Alert, Platform, Keyboard,
 } from 'react-native';
 import { useRouter, useLocalSearchParams } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -29,6 +29,14 @@ const DURATIONS = [
   { value: '18_months', label: '18 months' },
   { value: '24_months', label: '2 years' },
   { value: 'flexible',  label: 'Flexible' },
+];
+
+const MESSAGE_TEMPLATES: { label: string; text: string }[] = [
+  { label: 'Working professional', text: "Hi, I'm a working professional looking for a long-term rental. I have a stable income and excellent references." },
+  { label: 'Quiet tenant', text: "Hello! I'm a quiet, responsible tenant seeking a peaceful place to call home. I work from home occasionally." },
+  { label: 'Relocating for work', text: "Hi there, I'm relocating for work and looking for a place to move into soon. I'm organized and respectful of property." },
+  { label: 'Student / Postgrad', text: "Hello! I'm a student/postgrad with a part-time job. I'm looking for a clean, quiet space for the semester." },
+  { label: 'No pets, non-smoker', text: "Hi, I'm interested in this property. I'm a non-smoker, no pets, and I take pride in keeping my space tidy." },
 ];
 
 export default function ApplyModal() {
@@ -118,7 +126,7 @@ export default function ApplyModal() {
               {price > 0 && (
                 <Text style={[styles.listingPrice, { color: Colors.terracotta }]}>
                   {formatPrice(price, currency ?? 'USD')}
-                  <Text style={{ color: Colors.muted, fontFamily: Fonts.body, fontSize: 12 }}>/month</Text>
+                  <Text style={{ color: colors.muted, fontFamily: Fonts.body, fontSize: 12 }}>/month</Text>
                 </Text>
               )}
             </View>
@@ -134,7 +142,7 @@ export default function ApplyModal() {
           >
             <HabixaIcon name="calendar-alt" size={14} color={Colors.terracotta} />
             <Text style={[styles.dateBtnText, { color: colors.text }]}>{formatDate(moveInDate)}</Text>
-            <HabixaIcon name="chevron-down" size={12} color={Colors.muted} />
+            <HabixaIcon name="chevron-down" size={12} color={colors.muted} />
           </Pressable>
           {showDatePicker && (
             <DateTimePicker
@@ -177,18 +185,39 @@ export default function ApplyModal() {
         {/* Message */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.text }]}>Message to landlord</Text>
-          <Text style={[styles.sectionHint, { color: Colors.muted }]}>
+          <Text style={[styles.sectionHint, { color: colors.muted }]}>
             Introduce yourself. Tell them a little about you, why you're interested, and when you'd like to move in.
           </Text>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.templateScroll}
+            contentContainerStyle={styles.templateRow}
+          >
+            {MESSAGE_TEMPLATES.map((tpl, i) => (
+              <Pressable
+                key={i}
+                style={[styles.templateChip, { borderColor: colors.border, backgroundColor: colors.card }]}
+                onPress={() => setMessage((prev) => (prev ? `${prev}\n\n${tpl.text}` : tpl.text))}
+              >
+                <Text style={[styles.templateChipText, { color: colors.textSecondary }]}>
+                  {tpl.label}
+                </Text>
+              </Pressable>
+            ))}
+          </ScrollView>
           <TextInput
             style={[styles.messageInput, { color: colors.text, borderColor: colors.border, backgroundColor: colors.card }]}
             placeholder="Hi, I'm interested in renting your property. I'm a..."
-            placeholderTextColor={Colors.muted}
+            placeholderTextColor={colors.muted}
             value={message}
             onChangeText={setMessage}
             multiline
             maxLength={1000}
             textAlignVertical="top"
+            returnKeyType="done"
+            blurOnSubmit={true}
+            onSubmitEditing={() => Keyboard.dismiss()}
           />
           <View style={styles.charCountRow}>
             {message.trim().length < 20 && message.length > 0 && (
@@ -196,7 +225,7 @@ export default function ApplyModal() {
                 Minimum 20 characters
               </Text>
             )}
-            <Text style={[styles.charCount, { color: Colors.muted }]}>
+            <Text style={[styles.charCount, { color: colors.muted }]}>
               {message.length}/1000
             </Text>
           </View>
@@ -204,8 +233,8 @@ export default function ApplyModal() {
 
         {/* Note */}
         <View style={[styles.note, { borderColor: colors.border }]}>
-          <HabixaIcon name="info-circle" size={12} color={Colors.muted} />
-          <Text style={[styles.noteText, { color: Colors.muted }]}>
+          <HabixaIcon name="info-circle" size={12} color={colors.muted} />
+          <Text style={[styles.noteText, { color: colors.muted }]}>
             The landlord will review your profile including your trust score and rental history before responding.
           </Text>
         </View>
@@ -263,6 +292,13 @@ const styles = StyleSheet.create({
   },
   durationChipText: { fontFamily: Fonts.heading, fontSize: 13 },
 
+  templateScroll: { marginBottom: 8, marginHorizontal: -4 },
+  templateRow: { gap: 8, paddingHorizontal: 4 },
+  templateChip: {
+    paddingVertical: 8, paddingHorizontal: 12,
+    borderRadius: 20, borderWidth: 0.5,
+  },
+  templateChipText: { fontFamily: Fonts.heading, fontSize: 12 },
   messageInput: {
     height: 140, borderWidth: 0.5, borderRadius: 12,
     padding: 14, fontFamily: Fonts.body, fontSize: 14, lineHeight: 22,

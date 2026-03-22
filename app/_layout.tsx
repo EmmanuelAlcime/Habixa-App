@@ -22,6 +22,7 @@ import { ErrorBoundary } from '@/components/ErrorBoundary';
 import { NotificationResponseHandler } from '@/components/NotificationResponseHandler';
 import { OfflineBanner } from '@/components/OfflineBanner';
 import { ConnectionRestoredToast } from '@/components/ConnectionRestoredToast';
+import { MessageNotificationProvider } from '@/context/MessageNotificationContext';
 
 const STRIPE_PUBLISHABLE_KEY = process.env.EXPO_PUBLIC_STRIPE_PUBLISHABLE_KEY ?? '';
 
@@ -64,6 +65,7 @@ export default function RootLayout() {
               <AuthProvider>
               <ApiAuthHandler />
               <PremiumProvider>
+                <MessageNotificationProvider>
                 <NotificationResponseHandler />
                 <View style={{ flex: 1 }}>
                   <OfflineBanner />
@@ -77,6 +79,7 @@ export default function RootLayout() {
                   <ConnectionRestoredToast />
                 </View>
                 <ThemedStatusBar />
+                </MessageNotificationProvider>
               </PremiumProvider>
             </AuthProvider>
           </ConnectivityProvider>

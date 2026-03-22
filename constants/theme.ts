@@ -20,6 +20,7 @@ export const Colors = {
   light: {
     text: '#0F1623',
     textSecondary: '#5C7C6F',
+    muted: 'rgba(15, 22, 35, 0.45)',
     background: '#F5EFE6',
     card: '#FFFFFF',
     tint: '#C2673A',
@@ -31,6 +32,7 @@ export const Colors = {
   dark: {
     text: '#F5EFE6',
     textSecondary: '#89B4C8',
+    muted: 'rgba(245, 239, 230, 0.5)',
     background: '#0F1623',
     card: '#1E2D45',
     tint: '#C2673A',

@@ -28,6 +28,7 @@ interface TenantScore { score: number; review_count: number; }
 interface TenantInfo {
   id: number; name: string; avatar_url?: string | null;
   city?: string | null; country?: string | null;
+  age?: number | null; gender?: string | null;
   identity_verified: boolean; phone_verified: boolean;
   tenant_score: TenantScore; total_leases: number;
 }
@@ -39,13 +40,13 @@ interface Application {
   tenant: TenantInfo;
 }
 
-function ScoreBadge({ score, count }: { score: number; count: number }) {
-  if (count === 0) return <Text style={styles.noScore}>No reviews yet</Text>;
+function ScoreBadge({ score, count, mutedColor }: { score: number; count: number; mutedColor: string }) {
+  if (count === 0) return <Text style={[styles.noScore, { color: mutedColor }]}>No reviews yet</Text>;
   return (
     <View style={styles.scoreBadge}>
       <HabixaIcon name="star" size={10} color={Colors.gold} solid />
       <Text style={styles.scoreText}>{score.toFixed(1)}</Text>
-      <Text style={styles.scoreCount}>({count})</Text>
+      <Text style={[styles.scoreCount, { color: mutedColor }]}>({count})</Text>
     </View>
   );
 }
@@ -80,8 +81,8 @@ function ApplicationCard({
     accepted: Colors.sage,
     declined: Colors.terracotta,
     lease_created: Colors.sky,
-    withdrawn: Colors.muted,
-  }[app.status] ?? Colors.muted;
+    withdrawn: colors.textSecondary,
+  }[app.status] ?? colors.textSecondary;
 
   const initials = t.name.split(' ').map((p) => p[0]).join('').slice(0, 2).toUpperCase();
 
@@ -104,11 +105,24 @@ function ApplicationCard({
           <View style={styles.metaRow}>
             {t.city ? (
               <View style={styles.metaItem}>
-                <HabixaIcon name="map-marker-alt" size={9} color={Colors.muted} />
-                <Text style={styles.metaText}>{t.city}{t.country ? `, ${t.country}` : ''}</Text>
+                <HabixaIcon name="map-marker-alt" size={9} color={colors.textSecondary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>{t.city}{t.country ? `, ${t.country}` : ''}</Text>
               </View>
             ) : null}
-            <ScoreBadge score={t.tenant_score.score} count={t.tenant_score.review_count} />
+            {t.age != null && (
+              <View style={styles.metaItem}>
+                <HabixaIcon name="user" size={9} color={colors.textSecondary} />
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>{t.age} years old</Text>
+              </View>
+            )}
+            {t.gender && (
+              <View style={styles.metaItem}>
+                <Text style={[styles.metaText, { color: colors.textSecondary }]}>
+                  {t.gender === 'male' ? 'Male' : t.gender === 'female' ? 'Female' : "I'd rather not say"}
+                </Text>
+              </View>
+            )}
+            <ScoreBadge score={t.tenant_score.score} count={t.tenant_score.review_count} mutedColor={colors.textSecondary} />
           </View>
           <View style={styles.badgeRow}>
             {t.identity_verified && <VerifiedBadge label="ID verified" />}
@@ -121,27 +135,27 @@ function ApplicationCard({
             )}
           </View>
         </View>
-        <HabixaIcon name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={Colors.muted} />
+        <HabixaIcon name={expanded ? 'chevron-up' : 'chevron-down'} size={14} color={colors.textSecondary} />
       </Pressable>
 
       {/* Request summary always visible */}
       <View style={[styles.requestRow, { borderTopColor: colors.border }]}>
         <View style={styles.requestItem}>
-          <HabixaIcon name="calendar-alt" size={11} color={Colors.muted} />
-          <Text style={styles.requestText}>
+          <HabixaIcon name="calendar-alt" size={11} color={colors.textSecondary} />
+          <Text style={[styles.requestText, { color: colors.textSecondary }]}>
             Move in: {new Date(app.move_in_date).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })}
           </Text>
         </View>
         <View style={styles.requestItem}>
-          <HabixaIcon name="clock" size={11} color={Colors.muted} />
-          <Text style={styles.requestText}>{app.duration_label}</Text>
+          <HabixaIcon name="clock" size={11} color={colors.textSecondary} />
+          <Text style={[styles.requestText, { color: colors.textSecondary }]}>{app.duration_label}</Text>
         </View>
       </View>
 
       {/* Expanded: full message */}
       {expanded && (
         <View style={[styles.messageWrap, { borderTopColor: colors.border }]}>
-          <Text style={[styles.messageLabel, { color: Colors.muted }]}>Message</Text>
+          <Text style={[styles.messageLabel, { color: colors.textSecondary }]}>Message</Text>
           <Text style={[styles.messageText, { color: colors.text }]}>{app.message}</Text>
         </View>
       )}
@@ -225,7 +239,10 @@ export default function ApplicantsScreen() {
       });
       const convId = (res as { id?: number })?.id;
       if (convId) router.push(`/(tabs)/(messages)/${convId}`);
-    } catch {}
+    } catch (e) {
+      const err = e as { message?: string };
+      Alert.alert('Error', err?.message ?? 'Could not start conversation. Please try again.');
+    }
   }
 
   async function handleAccept(app: Application) {
@@ -274,9 +291,9 @@ export default function ApplicantsScreen() {
         </View>
       ) : applications.length === 0 ? (
         <View style={styles.center}>
-          <HabixaIcon name="inbox" size={48} color={Colors.muted} />
+          <HabixaIcon name="inbox" size={48} color={colors.textSecondary} />
           <Text style={[styles.emptyTitle, { color: colors.text }]}>No applications yet</Text>
-          <Text style={[styles.emptySub, { color: Colors.muted }]}>
+          <Text style={[styles.emptySub, { color: colors.textSecondary }]}>
             Tenants who click "Apply Now" on your listing will appear here
           </Text>
         </View>
@@ -318,14 +335,14 @@ export default function ApplicantsScreen() {
             </Pressable>
           </View>
           <View style={styles.modalBody}>
-            <Text style={[styles.modalHint, { color: Colors.muted }]}>
+            <Text style={[styles.modalHint, { color: colors.textSecondary }]}>
               {declineModal?.tenant.name} will be notified that their application was not successful.
               Optionally add a brief reason.
             </Text>
             <TextInput
               style={[styles.declineInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }]}
               placeholder="Reason (optional)"
-              placeholderTextColor={Colors.muted}
+              placeholderTextColor={colors.textSecondary}
               value={declineReason}
               onChangeText={setDeclineReason}
               multiline
@@ -369,18 +386,18 @@ const styles = StyleSheet.create({
   statusPillText: { fontFamily: Fonts.heading, fontSize: 10, textTransform: 'capitalize' },
   metaRow: { flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' },
   metaItem: { flexDirection: 'row', alignItems: 'center', gap: 3 },
-  metaText: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
+  metaText: { fontFamily: Fonts.body, fontSize: 11 },
   badgeRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginTop: 2 },
   scoreBadge: { flexDirection: 'row', alignItems: 'center', gap: 3 },
   scoreText: { fontFamily: Fonts.heading, fontSize: 11, color: Colors.gold },
-  scoreCount: { fontFamily: Fonts.body, fontSize: 10, color: Colors.muted },
-  noScore: { fontFamily: Fonts.body, fontSize: 11, color: Colors.muted },
+  scoreCount: { fontFamily: Fonts.body, fontSize: 10 },
+  noScore: { fontFamily: Fonts.body, fontSize: 11 },
   verifiedBadge: { flexDirection: 'row', alignItems: 'center', gap: 3, backgroundColor: Colors.sage + '15', paddingVertical: 2, paddingHorizontal: 6, borderRadius: 6 },
   verifiedText: { fontFamily: Fonts.heading, fontSize: 10, color: Colors.sage },
 
   requestRow: { flexDirection: 'row', gap: 16, paddingVertical: 10, paddingHorizontal: 14, borderTopWidth: 0.5 },
   requestItem: { flexDirection: 'row', alignItems: 'center', gap: 5 },
-  requestText: { fontFamily: Fonts.body, fontSize: 12, color: Colors.muted },
+  requestText: { fontFamily: Fonts.body, fontSize: 12 },
 
   messageWrap: { padding: 14, borderTopWidth: 0.5 },
   messageLabel: { fontFamily: Fonts.heading, fontSize: 10, letterSpacing: 1, textTransform: 'uppercase', marginBottom: 6 },

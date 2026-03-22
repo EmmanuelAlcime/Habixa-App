@@ -23,6 +23,7 @@ const ACCOUNT_MENU = [
 ] as const;
 
 const ACTIVITY_MENU = [
+  { id: 'liked', icon: 'heart', label: 'Liked Properties', route: '/(tabs)/(profile)/liked' },
   { id: 'reviews', icon: 'star', label: 'My Reviews', route: '/(tabs)/(profile)/reviews' },
   { id: 'leases', icon: 'file-alt', label: 'My Leases', route: '/(tabs)/(profile)/leases' },
   { id: 'complaints', icon: 'exclamation-triangle', label: 'Complaints', route: '/(tabs)/(profile)/complaints' },
@@ -159,10 +160,10 @@ export default function ProfileScreen() {
                       <HabixaIcon name="check-circle" size={11} color={Colors.sage} solid />
                       <Text style={styles.verifiedText}>Verified</Text>
                     </View>
-                    <HabixaIcon name="chevron-right" size={12} color={Colors.muted} solid />
+                    <HabixaIcon name="chevron-right" size={12} color={colors.textSecondary} solid />
                   </View>
                 ) : (
-                  <HabixaIcon name="chevron-right" size={12} color={Colors.muted} solid />
+                  <HabixaIcon name="chevron-right" size={12} color={colors.textSecondary} solid />
                 )}
               </Pressable>
             ))}
@@ -190,7 +191,7 @@ export default function ProfileScreen() {
                       <Text style={styles.menuBadgeText}>{reviewCount}</Text>
                     </View>
                   )}
-                  <HabixaIcon name="chevron-right" size={12} color={Colors.muted} solid />
+                  <HabixaIcon name="chevron-right" size={12} color={colors.textSecondary} solid />
                 </View>
               </Pressable>
             ))}

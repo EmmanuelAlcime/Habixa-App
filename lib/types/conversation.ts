@@ -36,6 +36,10 @@ export interface Message {
   read_at: string | null;
   created_at: string;
   sender?: { id: number; name: string };
+  type?: 'text' | 'image' | 'document' | 'location';
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  metadata?: { lat?: number; lng?: number; address?: string } | null;
 }
 
 export interface ApiMessage {
@@ -46,6 +50,10 @@ export interface ApiMessage {
   read_at: string | null;
   created_at: string;
   sender?: { id: number; name: string };
+  type?: 'text' | 'image' | 'document' | 'location';
+  attachment_url?: string | null;
+  attachment_name?: string | null;
+  metadata?: { lat?: number; lng?: number; address?: string } | null;
 }
 
 export function mapApiConversation(api: ApiConversation, currentUserId: string): Conversation {

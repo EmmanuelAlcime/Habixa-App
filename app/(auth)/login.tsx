@@ -24,7 +24,7 @@ import { useGoogleAuth, useFacebookAuth } from '@/lib/socialAuth';
 WebBrowser.maybeCompleteAuthSession();
 
 export default function LoginScreen() {
-  const { login, loginWithGoogle, loginWithFacebook } = useAuth();
+  const { login, loginWithGoogle, loginWithFacebook, resetOnboarding } = useAuth();
   const router = useRouter();
   const { colors, colorScheme } = useTheme();
   const insets = useSafeAreaInsets();
@@ -268,6 +268,20 @@ export default function LoginScreen() {
               </Text>
             </Pressable>
           </Link>
+
+          {__DEV__ && (
+            <Pressable
+              style={styles.resetOnboardingLink}
+              onPress={async () => {
+                await resetOnboarding();
+                router.replace('/(auth)/onboarding');
+              }}
+            >
+              <Text style={[styles.resetOnboardingText, { color: colors.textSecondary }]}>
+                Reset onboarding (dev)
+              </Text>
+            </Pressable>
+          )}
         </View>
       </ScrollView>
     </KeyboardAvoidingView>
@@ -411,6 +425,13 @@ const styles = StyleSheet.create({
   signupLink: {
     marginTop: 8,
     alignItems: 'center',
+  },
+  resetOnboardingLink: {
+    marginTop: 16,
+    alignItems: 'center',
+  },
+  resetOnboardingText: {
+    fontSize: 11,
   },
   signupLinkText: {
     fontSize: 12,

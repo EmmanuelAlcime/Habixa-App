@@ -1,4 +1,4 @@
-import { Tabs } from 'expo-router';
+import { Tabs, useSegments } from 'expo-router';
 
 import { HapticTab } from '@/components/haptic-tab';
 import { useTheme } from '@/context/ThemeContext';
@@ -16,6 +16,20 @@ const TAB_ICONS = {
 export default function TabLayout() {
   const { colors, colorScheme } = useTheme();
   const isDark = colorScheme === 'dark';
+  const segments = useSegments();
+  const isMessageDetails =
+    segments[0] === '(tabs)' &&
+    segments[1] === '(messages)' &&
+    segments[2] !== undefined &&
+    segments[2] !== 'index';
+  const isNotifications =
+    segments[0] === '(tabs)' && segments[1] === '(home)' && segments[2] === 'notifications';
+  const isListingDetails =
+    segments[0] === '(tabs)' &&
+    segments[1] === '(home)' &&
+    segments[2] === 'listing' &&
+    segments[3] !== undefined;
+  const hideTabBar = isMessageDetails || isNotifications || isListingDetails;
 
   return (
     <Tabs
@@ -23,12 +37,14 @@ export default function TabLayout() {
       screenOptions={{
         tabBarActiveTintColor: colors.tabIconSelected,
         tabBarInactiveTintColor: colors.tabIconDefault,
-        tabBarStyle: {
-          backgroundColor: isDark ? colors.background : colors.card,
-          borderTopWidth: 0.5,
-          borderTopColor: colors.border,
-          paddingBottom: 8,
-        },
+        tabBarStyle: hideTabBar
+          ? { display: 'none' }
+          : {
+              backgroundColor: isDark ? colors.background : colors.card,
+              borderTopWidth: 0.5,
+              borderTopColor: colors.border,
+              paddingBottom: 8,
+            },
         tabBarLabelStyle: {
           fontFamily: Fonts.heading,
           fontSize: 9,

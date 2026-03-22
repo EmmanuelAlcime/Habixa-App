@@ -149,6 +149,8 @@ export const Endpoints = {
     messages: (id: string) => `${API_PREFIX}/conversations/${id}/messages`,
     sendMessage: (id: string) => `${API_PREFIX}/conversations/${id}/messages`,
     markRead: (id: string) => `${API_PREFIX}/conversations/${id}/read`,
+    viewing: (id: string) => `${API_PREFIX}/conversations/${id}/viewing`,
+    leave: (id: string) => `${API_PREFIX}/conversations/${id}/leave`,
   },
 
   // Background Checks
@@ -161,7 +163,10 @@ export const Endpoints = {
   notifications: {
     index: () => `${API_PREFIX}/notifications`,
     markRead: (id: string) => `${API_PREFIX}/notifications/${id}/read`,
+    destroy: (id: string) => `${API_PREFIX}/notifications/${id}`,
+    destroyAll: () => `${API_PREFIX}/notifications`,
     pushToken: () => `${API_PREFIX}/notifications/push-token`,
+    foreground: () => `${API_PREFIX}/notifications/foreground`,
   },
 
   // Admin

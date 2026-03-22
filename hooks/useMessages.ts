@@ -11,6 +11,10 @@ function toMessage(raw: ApiMessage): Message {
     read_at: raw.read_at,
     created_at: raw.created_at,
     sender: raw.sender,
+    type: raw.type ?? 'text',
+    attachment_url: raw.attachment_url,
+    attachment_name: raw.attachment_name,
+    metadata: raw.metadata,
   };
 }
 

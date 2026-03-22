@@ -19,6 +19,8 @@ interface UseNotificationsState {
   error: string | null;
   refetch: () => Promise<void>;
   markAsRead: (id: string) => Promise<void>;
+  clearNotification: (id: string) => Promise<void>;
+  clearAll: () => Promise<void>;
 }
 
 export function useNotifications(): UseNotificationsState {
@@ -74,12 +76,48 @@ export function useNotifications(): UseNotificationsState {
         );
         setUnreadCount((c) => Math.max(0, c - 1));
       } catch {
-        // Refetch on failure
         await fetchNotifications();
       }
     },
     [fetchNotifications]
   );
 
-  return { notifications, unreadCount, loading, error, refetch: fetchNotifications, markAsRead };
+  const clearNotification = useCallback(
+    async (id: string) => {
+      try {
+        await api.delete(Endpoints.notifications.destroy(id));
+        setNotifications((prev) => {
+          const removed = prev.find((n) => n.id === id);
+          if (removed && !removed.read_at) {
+            setUnreadCount((c) => Math.max(0, c - 1));
+          }
+          return prev.filter((n) => n.id !== id);
+        });
+      } catch {
+        await fetchNotifications();
+      }
+    },
+    [fetchNotifications]
+  );
+
+  const clearAll = useCallback(async () => {
+    try {
+      await api.delete(Endpoints.notifications.destroyAll());
+      setNotifications([]);
+      setUnreadCount(0);
+    } catch {
+      await fetchNotifications();
+    }
+  }, [fetchNotifications]);
+
+  return {
+    notifications,
+    unreadCount,
+    loading,
+    error,
+    refetch: fetchNotifications,
+    markAsRead,
+    clearNotification,
+    clearAll,
+  };
 }

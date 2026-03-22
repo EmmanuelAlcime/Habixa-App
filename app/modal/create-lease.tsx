@@ -143,7 +143,7 @@ export default function CreateLeaseModal() {
             </Text>
           </View>
           <View>
-            <Text style={[styles.tenantLabel, { color: Colors.muted }]}>Tenant</Text>
+            <Text style={[styles.tenantLabel, { color: colors.muted }]}>Tenant</Text>
             <Text style={[styles.tenantName, { color: colors.text }]}>{tenantName ?? '—'}</Text>
           </View>
         </View>
@@ -153,7 +153,7 @@ export default function CreateLeaseModal() {
           <Text style={[styles.sectionLabel, { color: colors.text }]}>Lease dates</Text>
           <View style={styles.dateRow}>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.inputLabel, { color: Colors.muted }]}>Start date</Text>
+              <Text style={[styles.inputLabel, { color: colors.muted }]}>Start date</Text>
               <Pressable
                 style={[styles.dateBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
                 onPress={() => setShowStartPicker(true)}
@@ -171,7 +171,7 @@ export default function CreateLeaseModal() {
               )}
             </View>
             <View style={{ flex: 1 }}>
-              <Text style={[styles.inputLabel, { color: Colors.muted }]}>End date</Text>
+              <Text style={[styles.inputLabel, { color: colors.muted }]}>End date</Text>
               <Pressable
                 style={[styles.dateBtn, { borderColor: colors.border, backgroundColor: colors.card }]}
                 onPress={() => setShowEndPicker(true)}
@@ -201,7 +201,7 @@ export default function CreateLeaseModal() {
             <TextInput
               style={[styles.amountInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }]}
               placeholder="0.00"
-              placeholderTextColor={Colors.muted}
+              placeholderTextColor={colors.muted}
               value={monthlyRent}
               onChangeText={setMonthlyRent}
               keyboardType="decimal-pad"
@@ -212,7 +212,7 @@ export default function CreateLeaseModal() {
         {/* Deposit */}
         <View style={styles.section}>
           <Text style={[styles.sectionLabel, { color: colors.text }]}>Security deposit</Text>
-          <Text style={[styles.sectionHint, { color: Colors.muted }]}>
+          <Text style={[styles.sectionHint, { color: colors.muted }]}>
             Leave blank to waive the deposit. You are responsible for complying with local deposit laws.
           </Text>
           <View style={styles.amountRow}>
@@ -222,7 +222,7 @@ export default function CreateLeaseModal() {
             <TextInput
               style={[styles.amountInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }]}
               placeholder="0.00  (optional)"
-              placeholderTextColor={Colors.muted}
+              placeholderTextColor={colors.muted}
               value={depositAmount}
               onChangeText={setDepositAmount}
               keyboardType="decimal-pad"
@@ -231,7 +231,7 @@ export default function CreateLeaseModal() {
 
           {hasDeposit && (
             <View style={styles.depositMethodSection}>
-              <Text style={[styles.inputLabel, { color: Colors.muted }]}>How should the tenant pay the deposit?</Text>
+              <Text style={[styles.inputLabel, { color: colors.muted }]}>How should the tenant pay the deposit?</Text>
               {DEPOSIT_METHODS.map((m) => {
                 const active = depositMethod === m.value;
                 return (
@@ -244,11 +244,11 @@ export default function CreateLeaseModal() {
                     onPress={() => setDepositMethod(m.value)}
                   >
                     <View style={[styles.methodIconWrap, { backgroundColor: active ? Colors.terracotta + '20' : colors.background }]}>
-                      <HabixaIcon name={m.icon} size={16} color={active ? Colors.terracotta : Colors.muted} />
+                      <HabixaIcon name={m.icon} size={16} color={active ? Colors.terracotta : colors.muted} />
                     </View>
                     <View style={{ flex: 1 }}>
                       <Text style={[styles.methodLabel, { color: colors.text }]}>{m.label}</Text>
-                      <Text style={[styles.methodDesc, { color: Colors.muted }]}>{m.desc}</Text>
+                      <Text style={[styles.methodDesc, { color: colors.muted }]}>{m.desc}</Text>
                     </View>
                     {active && <HabixaIcon name="check-circle" size={18} color={Colors.terracotta} solid />}
                   </Pressable>
@@ -260,11 +260,11 @@ export default function CreateLeaseModal() {
 
         {/* Notes */}
         <View style={styles.section}>
-          <Text style={[styles.sectionLabel, { color: colors.text }]}>Notes / house rules <Text style={{ color: Colors.muted, fontFamily: Fonts.body }}>(optional)</Text></Text>
+          <Text style={[styles.sectionLabel, { color: colors.text }]}>Notes / house rules <Text style={{ color: colors.muted, fontFamily: Fonts.body }}>(optional)</Text></Text>
           <TextInput
             style={[styles.notesInput, { borderColor: colors.border, color: colors.text, backgroundColor: colors.card }]}
             placeholder="e.g. No smoking, pets allowed with permission, bin day is Tuesday..."
-            placeholderTextColor={Colors.muted}
+            placeholderTextColor={colors.muted}
             value={notes}
             onChangeText={setNotes}
             multiline
@@ -276,19 +276,19 @@ export default function CreateLeaseModal() {
         {/* Summary */}
         {monthlyRent && parseFloat(monthlyRent) > 0 && (
           <View style={[styles.summary, { backgroundColor: colors.card, borderColor: colors.border }]}>
-            <Text style={[styles.summaryTitle, { color: Colors.muted }]}>Summary</Text>
+            <Text style={[styles.summaryTitle, { color: colors.muted }]}>Summary</Text>
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: Colors.muted }]}>Monthly rent</Text>
+              <Text style={[styles.summaryLabel, { color: colors.muted }]}>Monthly rent</Text>
               <Text style={[styles.summaryValue, { color: colors.text }]}>{currency} {parseFloat(monthlyRent).toLocaleString()}/mo</Text>
             </View>
             {hasDeposit && (
               <View style={styles.summaryRow}>
-                <Text style={[styles.summaryLabel, { color: Colors.muted }]}>Deposit</Text>
+                <Text style={[styles.summaryLabel, { color: colors.muted }]}>Deposit</Text>
                 <Text style={[styles.summaryValue, { color: colors.text }]}>{currency} {parseFloat(depositAmount || '0').toLocaleString()}</Text>
               </View>
             )}
             <View style={styles.summaryRow}>
-              <Text style={[styles.summaryLabel, { color: Colors.muted }]}>Duration</Text>
+              <Text style={[styles.summaryLabel, { color: colors.muted }]}>Duration</Text>
               <Text style={[styles.summaryValue, { color: colors.text }]}>
                 {formatDate(startDate)} → {formatDate(endDate)}
               </Text>

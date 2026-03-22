@@ -4,6 +4,7 @@ export default function ProfileLayout() {
   return (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Screen name="index" />
+      <Stack.Screen name="liked" />
       <Stack.Screen name="edit" />
       <Stack.Screen name="pay-history" />
       <Stack.Screen name="verification" />

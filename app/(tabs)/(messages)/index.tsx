@@ -1,4 +1,4 @@
-import { useCallback, useRef } from 'react';
+import { useCallback } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -8,9 +8,9 @@ import { useTheme } from '@/context/ThemeContext';
 import { HabixaIcon } from '@/components/HabixaIcon';
 import { Colors, Fonts } from '@/constants/theme';
 import { useConversations } from '@/hooks/useConversations';
-import { subscribeToUserChannel } from '@/lib/pusher';
-import { useAuth } from '@/context/AuthContext';
+import { useMessageNotification } from '@/context/MessageNotificationContext';
 import type { Conversation } from '@/lib/types/conversation';
+
 
 function ConversationItem({
   item,
@@ -56,26 +56,15 @@ export default function InboxScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
   const { colors } = useTheme();
-  const { user } = useAuth();
   const { conversations, refetch } = useConversations();
-  const unsubscribeRef = useRef<(() => void) | null>(null);
+  const { addConversationUpdateListener } = useMessageNotification();
 
   useFocusEffect(
     useCallback(() => {
       refetch();
-      if (user?.id) {
-        const unsub = subscribeToUserChannel(user.id, () => {
-          refetch();
-        });
-        unsubscribeRef.current = unsub ?? null;
-      }
-      return () => {
-        if (unsubscribeRef.current) {
-          unsubscribeRef.current();
-          unsubscribeRef.current = null;
-        }
-      };
-    }, [refetch, user?.id])
+      const remove = addConversationUpdateListener(refetch);
+      return remove;
+    }, [refetch, addConversationUpdateListener])
   );
 
   return (

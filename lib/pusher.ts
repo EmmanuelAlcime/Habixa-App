@@ -5,7 +5,7 @@
 
 // Use React Native–specific build; default import can resolve to browser build and fail with "pusher.js could not be found"
 import Pusher from 'pusher-js/dist/react-native/pusher';
-import { getAuthToken } from './api/client';
+import { getAuthToken, getApiBaseUrl } from './api/client';
 
 const PUSHER_KEY =
   (typeof process !== 'undefined' &&
@@ -14,24 +14,15 @@ const PUSHER_KEY =
 
 let pusher: Pusher | null = null;
 
-function getBaseUrl(): string {
-  return (
-    (typeof process !== 'undefined' &&
-      (process.env.EXPO_PUBLIC_API_URL || process.env.API_URL)) ||
-    'http://localhost:8000'
-  ).replace(/\/$/, '');
-}
-
 function getPusher(): Pusher | null {
   if (!PUSHER_KEY) return null;
   if (pusher) return pusher;
-
   const token = getAuthToken();
   if (!token) return null;
-
+  const baseUrl = getApiBaseUrl().replace(/\/$/, '');
   pusher = new Pusher(PUSHER_KEY, {
     cluster: process.env.EXPO_PUBLIC_PUSHER_APP_CLUSTER || 'mt1',
-    authEndpoint: `${getBaseUrl()}/api/broadcasting/auth`,
+    authEndpoint: `${baseUrl}/api/broadcasting/auth`,
     auth: {
       headers: {
         Authorization: `Bearer ${token}`,
@@ -68,28 +59,103 @@ export function subscribeToUserChannel(
   };
 }
 
+/** Channel returned from subscribeToConversationChannel; supports trigger for client events (typing). */
+export interface ConversationChannelRef {
+  unsubscribe: () => void;
+  channel: { trigger: (eventName: string, data?: object) => boolean };
+}
+
+export interface ConversationSubscriptionOptions {
+  onMessageSent: (data: { message: Record<string, unknown> }) => void;
+  onUserTyping?: (data: { userId: string; userName: string }) => void;
+  onUserStoppedTyping?: (data: { userId: string }) => void;
+}
+
 export function subscribeToConversationChannel(
   conversationId: string,
   onMessageSent: (data: { message: Record<string, unknown> }) => void
-): (() => void) | null {
+): ConversationChannelRef | null;
+export function subscribeToConversationChannel(
+  conversationId: string,
+  options: ConversationSubscriptionOptions
+): ConversationChannelRef | null;
+export function subscribeToConversationChannel(
+  conversationId: string,
+  onMessageSentOrOptions: ((data: { message: Record<string, unknown> }) => void) | ConversationSubscriptionOptions
+): ConversationChannelRef | null {
   const p = getPusher();
   if (!p) return null;
+  const options: ConversationSubscriptionOptions =
+    typeof onMessageSentOrOptions === 'function'
+      ? { onMessageSent: onMessageSentOrOptions }
+      : onMessageSentOrOptions;
 
   const channelName = `private-conversation.${conversationId}`;
   const channel = p.subscribe(channelName);
 
-  const handler = (data: { message?: Record<string, unknown> }) => {
+  if (__DEV__) {
+    channel.bind('pusher:subscription_succeeded', () => {
+      console.debug('[Pusher] subscribed to', channelName);
+    });
+    channel.bind('pusher:subscription_error', (err: { status?: number }) => {
+      console.warn('[Pusher] subscription error for', channelName, err);
+    });
+  }
+
+  const msgHandler = (data: { message?: Record<string, unknown> }) => {
     if (data?.message) {
-      onMessageSent({ message: data.message });
+      options.onMessageSent({ message: data.message });
     }
   };
 
-  channel.bind('MessageSent', handler);
+  channel.bind('MessageSent', msgHandler);
 
-  return () => {
-    channel.unbind('MessageSent', handler);
+  if (options.onUserTyping) {
+    channel.bind('client-UserTyping', (data: { userId?: string; userName?: string }) => {
+      if (data?.userId) {
+        options.onUserTyping!({ userId: data.userId, userName: data.userName ?? 'Someone' });
+      }
+    });
+  }
+  if (options.onUserStoppedTyping) {
+    channel.bind('client-UserStoppedTyping', (data: { userId?: string }) => {
+      if (data?.userId) {
+        options.onUserStoppedTyping!({ userId: data.userId });
+      }
+    });
+  }
+
+  const unsubscribe = () => {
+    channel.unbind('MessageSent', msgHandler);
+    channel.unbind('client-UserTyping');
+    channel.unbind('client-UserStoppedTyping');
+    if (__DEV__) {
+      channel.unbind('pusher:subscription_succeeded');
+      channel.unbind('pusher:subscription_error');
+    }
     p.unsubscribe(channelName);
   };
+
+  return { unsubscribe, channel };
+}
+
+/** Trigger typing indicator (client event). Channel must be subscribed. Requires "Client Events" in Pusher dashboard. */
+export function triggerTyping(
+  channelRef: { channel: { trigger: (eventName: string, data?: object) => boolean } } | null,
+  userId: string,
+  userName: string
+): void {
+  if (!channelRef?.channel) return;
+  channelRef.channel.trigger('client-UserTyping', { userId, userName });
+}
+
+/** Trigger stopped typing (client event). */
+export function triggerStoppedTyping(
+  channelRef: { channel: { trigger: (eventName: string, data?: object) => boolean } } | null,
+  userId: string
+): void {
+  if (!channelRef?.channel) return;
+  channelRef.channel.trigger('client-UserStoppedTyping', { userId });
 }
 
 export function disconnectPusher(): void {

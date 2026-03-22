@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect, type ReactNode }
 import { api, setAuthToken, Endpoints } from '@/lib/api/client';
 import { storage } from '@/lib/storage';
 import { registerPushToken } from '@/lib/notifications';
+import { disconnectPusher } from '@/lib/pusher';
 import { useAppStore } from '@/store/useAppStore';
 
 const AUTH_USER_KEY = '@habixa_user';
@@ -22,9 +23,10 @@ interface AuthContextType {
   loginWithGoogle: (idToken: string) => Promise<void>;
   loginWithApple: (idToken: string, fullName?: string) => Promise<void>;
   loginWithFacebook: (accessToken: string) => Promise<void>;
-  register: (name: string, email: string, password: string, accountType: 'tenant' | 'list_land' | 'list_house' | 'both', phone: string, location?: { city: string; region?: string; postalCode?: string; country: string }) => Promise<void>;
+  register: (name: string, email: string, password: string, accountType: 'tenant' | 'list_land' | 'list_house' | 'both', phone: string, location?: { city: string; region?: string; postalCode?: string; country: string }, demographics?: { dateOfBirth: string; gender: 'male' | 'female' | 'prefer_not_to_say' }) => Promise<void>;
   logout: () => Promise<void>;
   completeOnboarding: () => Promise<void>;
+  resetOnboarding: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | null>(null);
@@ -128,11 +130,24 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await afterLogin(res);
   }
 
-  async function register(name: string, email: string, password: string, accountType: 'tenant' | 'list_land' | 'list_house' | 'both', phone: string, location?: { city: string; region?: string; postalCode?: string; country: string }) {
+  async function register(name: string, email: string, password: string, accountType: 'tenant' | 'list_land' | 'list_house' | 'both', phone: string, location?: { city: string; region?: string; postalCode?: string; country: string }, demographics?: { dateOfBirth: string; gender: 'male' | 'female' | 'prefer_not_to_say' }) {
     const role = accountType === 'tenant' ? 'tenant' : 'landlord';
+    const payload: Record<string, unknown> = {
+      name,
+      email,
+      password,
+      password_confirmation: password,
+      role,
+      phone: phone.trim(),
+      ...(location && { city: location.city, region: location.region ?? null, postal_code: location.postalCode ?? null, country: location.country }),
+    };
+    if (demographics) {
+      payload.date_of_birth = demographics.dateOfBirth;
+      payload.gender = demographics.gender;
+    }
     const res = await api.post<{ user: { id: number; name: string; email: string; role?: string }; token: string }>(
       Endpoints.auth.register(),
-      { name, email, password, password_confirmation: password, role, phone: phone.trim(), ...(location && { city: location.city, region: location.region ?? null, postal_code: location.postalCode ?? null, country: location.country }) },
+      payload,
       { skipAuth: true }
     );
     await afterLogin(res);
@@ -142,6 +157,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       await api.post(Endpoints.authProtected.logout(), undefined, { skipUnauthCallback: true });
     } catch {}
+    disconnectPusher();
     setAuthToken(null);
     setUser(null);
     clearProfile();
@@ -153,8 +169,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await storage.setItem('@habixa_onboarding', 'true');
   }
 
+  async function resetOnboarding() {
+    setHasSeenOnboarding(false);
+    await storage.removeItem('@habixa_onboarding');
+  }
+
   return (
-    <AuthContext.Provider value={{ user, isLoading, hasSeenOnboarding, login, loginWithGoogle, loginWithApple, loginWithFacebook, register, logout, completeOnboarding }}>
+    <AuthContext.Provider value={{ user, isLoading, hasSeenOnboarding, login, loginWithGoogle, loginWithApple, loginWithFacebook, register, logout, completeOnboarding, resetOnboarding }}>
       {children}
     </AuthContext.Provider>
   );

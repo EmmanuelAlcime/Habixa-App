@@ -12,6 +12,8 @@ import {
   Alert,
   ActivityIndicator,
 } from 'react-native';
+import DateTimePicker from '@react-native-community/datetimepicker';
+import { format } from 'date-fns';
 import { useRouter, Link } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { StatusBar } from 'expo-status-bar';
@@ -68,9 +70,10 @@ function formatPhoneForDisplay(phone: string): string {
   }
 }
 
-const STEPS = 5;
+const STEPS = 6;
 
 type AccountType = 'tenant' | 'list_land' | 'list_house' | 'both';
+type Gender = 'male' | 'female' | 'prefer_not_to_say';
 
 export default function RegisterScreen() {
   const { register } = useAuth();
@@ -92,6 +95,9 @@ export default function RegisterScreen() {
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [accountType, setAccountType] = useState<AccountType | null>(null);
+  const [dateOfBirth, setDateOfBirth] = useState<Date | null>(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [gender, setGender] = useState<Gender | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
@@ -138,9 +144,10 @@ export default function RegisterScreen() {
     name.trim().length >= 2 && email.trim().includes('@') && isValidPhoneForSubmit(phone);
   const canNextStep2 =
     location.city.trim().length >= 2 && location.country.length === 2;
-  const canNextStep3 =
+  const canNextStep3 = dateOfBirth !== null && gender !== null;
+  const canNextStep4 =
     password.length >= 6 && password === confirmPassword;
-  const canNextStep4 = accountType !== null;
+  const canNextStep5 = accountType !== null;
 
   const handleNext = () => {
     if (step < STEPS) setStep(step + 1);
@@ -151,7 +158,7 @@ export default function RegisterScreen() {
   };
 
   const handleRegister = async () => {
-    if (!accountType || !isValidPhoneForSubmit(phone)) return;
+    if (!accountType || !isValidPhoneForSubmit(phone) || !dateOfBirth || !gender) return;
     setLoading(true);
     setError(null);
     try {
@@ -166,6 +173,10 @@ export default function RegisterScreen() {
           region: location.region.trim() || undefined,
           postalCode: location.postalCode.trim() || undefined,
           country: location.country,
+        },
+        {
+          dateOfBirth: format(dateOfBirth, 'yyyy-MM-dd'),
+          gender,
         }
       );
       setNeedsPhoneVerification(true);
@@ -176,6 +187,8 @@ export default function RegisterScreen() {
         err?.errors?.email?.[0] ??
         err?.errors?.password?.[0] ??
         err?.errors?.phone?.[0] ??
+        err?.errors?.date_of_birth?.[0] ??
+        err?.errors?.gender?.[0] ??
         err?.message ??
         'Registration failed. Please try again.';
       setError(toFriendlyError(raw));
@@ -402,8 +415,109 @@ export default function RegisterScreen() {
             </Animated.View>
           )}
 
-          {/* Step 3: Password */}
+          {/* Step 3: Age & Gender */}
           {step === 3 && (
+            <Animated.View
+              entering={FadeIn.duration(200)}
+              exiting={FadeOut.duration(150)}
+              style={styles.stepContent}
+            >
+              <Text style={[styles.title, { color: colors.text }]}>A bit more about you</Text>
+              <Text style={[styles.subtitle, { color: colors.textSecondary }]}>
+                This helps landlords see applicant details when reviewing applications
+              </Text>
+
+              <Text style={[styles.label, { color: colors.textSecondary }]}>Date of birth</Text>
+              <Pressable
+                style={[
+                  styles.input,
+                  styles.datePickerInput,
+                  { backgroundColor: colors.card, borderColor: colors.border },
+                ]}
+                onPress={() => setShowDatePicker(true)}
+              >
+                <Text style={[styles.inputText, { color: dateOfBirth ? colors.text : colors.textSecondary }]}>
+                  {dateOfBirth ? format(dateOfBirth, 'MMMM d, yyyy') : 'Select your date of birth'}
+                </Text>
+                <HabixaIcon name="calendar-alt" size={18} color={colors.textSecondary} />
+              </Pressable>
+              {showDatePicker && (
+                <DateTimePicker
+                  value={dateOfBirth ?? new Date(2000, 0, 1)}
+                  mode="date"
+                  display={Platform.OS === 'ios' ? 'spinner' : 'default'}
+                  maximumDate={new Date()}
+                  minimumDate={new Date(1900, 0, 1)}
+                  onChange={(_, selectedDate) => {
+                    setShowDatePicker(Platform.OS === 'ios');
+                    if (selectedDate) setDateOfBirth(selectedDate);
+                  }}
+                />
+              )}
+
+              <Text style={[styles.label, { color: colors.textSecondary, marginTop: 16 }]}>Gender</Text>
+              <Pressable
+                style={[
+                  styles.option,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: gender === 'male' ? Colors.terracotta : colors.border,
+                  },
+                  gender === 'male' && styles.optionActive,
+                ]}
+                onPress={() => setGender('male')}
+              >
+                <Text style={[
+                  styles.optionText,
+                  { color: colors.text },
+                  gender === 'male' && styles.optionTextActive,
+                ]}>
+                  Male
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.option,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: gender === 'female' ? Colors.terracotta : colors.border,
+                  },
+                  gender === 'female' && styles.optionActive,
+                ]}
+                onPress={() => setGender('female')}
+              >
+                <Text style={[
+                  styles.optionText,
+                  { color: colors.text },
+                  gender === 'female' && styles.optionTextActive,
+                ]}>
+                  Female
+                </Text>
+              </Pressable>
+              <Pressable
+                style={[
+                  styles.option,
+                  {
+                    backgroundColor: colors.card,
+                    borderColor: gender === 'prefer_not_to_say' ? Colors.terracotta : colors.border,
+                  },
+                  gender === 'prefer_not_to_say' && styles.optionActive,
+                ]}
+                onPress={() => setGender('prefer_not_to_say')}
+              >
+                <Text style={[
+                  styles.optionText,
+                  { color: colors.text },
+                  gender === 'prefer_not_to_say' && styles.optionTextActive,
+                ]}>
+                  I&apos;d rather not say
+                </Text>
+              </Pressable>
+            </Animated.View>
+          )}
+
+          {/* Step 4: Password */}
+          {step === 4 && (
             <Animated.View
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
@@ -457,7 +571,7 @@ export default function RegisterScreen() {
                   autoComplete="password"
                 returnKeyType="next"
                 onSubmitEditing={() => {
-                  if (canNextStep3) {
+                  if (canNextStep4) {
                     Keyboard.dismiss();
                     handleNext();
                   }
@@ -481,8 +595,8 @@ export default function RegisterScreen() {
             </Animated.View>
           )}
 
-          {/* Step 4: Account type */}
-          {step === 4 && (
+          {/* Step 5: Account type */}
+          {step === 5 && (
             <Animated.View
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
@@ -598,8 +712,8 @@ export default function RegisterScreen() {
             </Animated.View>
           )}
 
-          {/* Step 5: Review */}
-          {step === 5 && (
+          {/* Step 6: Review */}
+          {step === 6 && (
             <Animated.View
               entering={FadeIn.duration(200)}
               exiting={FadeOut.duration(150)}
@@ -625,6 +739,21 @@ export default function RegisterScreen() {
                   <Text style={[styles.reviewLabel, { color: colors.textSecondary }]}>Location</Text>
                   <Text style={[styles.reviewValue, { color: colors.text }]}>
                     {[location.city, location.region ? (getRegionName(location.country, location.region) ?? location.region) : null, location.postalCode].filter(Boolean).join(', ')} {location.country}
+                  </Text>
+                </View>
+                <View style={[styles.reviewRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.reviewLabel, { color: colors.textSecondary }]}>Date of birth</Text>
+                  <Text style={[styles.reviewValue, { color: colors.text }]}>
+                    {dateOfBirth ? format(dateOfBirth, 'MMMM d, yyyy') : '—'}
+                  </Text>
+                </View>
+                <View style={[styles.reviewRow, { borderBottomColor: colors.border }]}>
+                  <Text style={[styles.reviewLabel, { color: colors.textSecondary }]}>Gender</Text>
+                  <Text style={[styles.reviewValue, { color: colors.text }]}>
+                    {gender === 'male' && 'Male'}
+                    {gender === 'female' && 'Female'}
+                    {gender === 'prefer_not_to_say' && "I'd rather not say"}
+                    {!gender && '—'}
                   </Text>
                 </View>
                 <View style={[styles.reviewRow, { borderBottomColor: colors.border }]}>
@@ -660,7 +789,8 @@ export default function RegisterScreen() {
                   (step === 1 && !canNextStep1) ||
                   (step === 2 && !canNextStep2) ||
                   (step === 3 && !canNextStep3) ||
-                  (step === 4 && !canNextStep4)
+                  (step === 4 && !canNextStep4) ||
+                  (step === 5 && !canNextStep5)
                     ? styles.nextBtnDisabled
                     : null,
                 ]}
@@ -669,7 +799,8 @@ export default function RegisterScreen() {
                   (step === 1 && !canNextStep1) ||
                   (step === 2 && !canNextStep2) ||
                   (step === 3 && !canNextStep3) ||
-                  (step === 4 && !canNextStep4)
+                  (step === 4 && !canNextStep4) ||
+                  (step === 5 && !canNextStep5)
                 }
               >
                 <Text style={styles.nextBtnText}>Next</Text>
@@ -752,6 +883,21 @@ const styles = StyleSheet.create({
   stepContent: {
     width: '100%',
     marginBottom: 32,
+  },
+  label: {
+    fontFamily: Fonts.label,
+    fontSize: 12,
+    marginBottom: 6,
+  },
+  inputText: {
+    fontFamily: Fonts.body,
+    fontSize: 16,
+    flex: 1,
+  },
+  datePickerInput: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
   title: {
     fontFamily: Fonts.display,
